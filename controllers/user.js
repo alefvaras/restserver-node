@@ -1,6 +1,8 @@
 
 const {response,request} =require('express');
-
+const Usuario = require('../models/usuario');
+const bcrypt = require('bcryptjs');
+const {validationResult}=require('express-validator');
 const usuarioGet=(req=request, res =response) => {
 
     const {nombre='ale2'}=req.query;
@@ -14,15 +16,28 @@ const usuarioGet=(req=request, res =response) => {
         });
 }
 
-const usuarioPost=(req, res =response) => {
+const usuarioPost= async(req, res =response) => {
 
-const {nombre,edad}=req.body;
+    const errors= validationResult(req);
+    if(!errors.isEmpty()) return res.status(100).json({errors})
+
+const {nombre,correo,password,rol}=req.body;
+const usuario=new Usuario({nombre,correo,password,rol});
+
+const exiteEmail=await Usuario.findOne({correo});
+
+if(exiteEmail) return res.status(400).json({error:'correo ya esta registrado'})
+
+const salt = bcrypt.genSaltSync();
+usuario.password= bcrypt.hashSync(password,salt);
+
+
+await usuario.save();
 
     res.status(201)
       .json({
             msn: 'post',
-            nombre:nombre,
-            edad:edad
+            usuario
         });
 }
 const usuarioPut=(req, res =response) => {
