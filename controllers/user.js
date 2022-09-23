@@ -1,78 +1,105 @@
 
-const {response,request} =require('express');
+const { response, request } = require('express');
 const Usuario = require('../models/usuario');
 const bcrypt = require('bcryptjs');
-const {validationResult}=require('express-validator');
-const usuarioGet=(req=request, res =response) => {
 
-    const {nombre='ale2'}=req.query;
+const usuarioGet = async (req = request, res = response) => {
+
+    const { limit = 5, desde = 0 } = req.query;
+
+    //  const usuarios= await usuario.find({estado:true}).
+    //  skip(Number(desde)).
+    //  limit(Number(limit));
+
+    //  const total= await usuario.countDocuments({estado:true});
+
+    const [total, usuarios] = await Promise.all([
+        Usuario.countDocuments({ estado: true }),
+        Usuario.find({ estado: true }).
+            skip(Number(desde)).
+            limit(Number(limit))
+    ])
     res.status(200)
-    
-      .json({
-            msn: 'get',
-           
-            nombre:nombre,
-            query:req.query
+
+        .json({
+            total,
+            usuarios
         });
 }
 
-const usuarioPost= async(req, res =response) => {
-
-    const errors= validationResult(req);
-    if(!errors.isEmpty()) return res.status(100).json({errors})
-
-const {nombre,correo,password,rol}=req.body;
-const usuario=new Usuario({nombre,correo,password,rol});
-
-const exiteEmail=await Usuario.findOne({correo});
-
-if(exiteEmail) return res.status(400).json({error:'correo ya esta registrado'})
-
-const salt = bcrypt.genSaltSync();
-usuario.password= bcrypt.hashSync(password,salt);
+const usuarioPost = async (req, res = response) => {
 
 
-await usuario.save();
+
+    const { nombre, correo, password, rol } = req.body;
+    const usuario = new Usuario({ nombre, correo, password, rol });
+
+    // const exiteEmail=await Usuario.findOne({correo});
+
+    // if(exiteEmail) return res.status(400).json({error:'correo ya esta registrado'})
+
+    const salt = bcrypt.genSaltSync();
+    usuario.password = bcrypt.hashSync(password, salt);
+
+
+    await Usuario.save();
 
     res.status(201)
-      .json({
+        .json({
             msn: 'post',
             usuario
         });
-}
-const usuarioPut=(req, res =response) => {
 
-    const {id}= req.params;
-   
+
+}
+const usuarioPut = async (req, res = response) => {
+
+    const { id } = req.params;
+
+    const { _id, password, google, correo, ...resto } = req.body;
+
+    if (password) {
+        const salt = bcrypt.genSaltSync();
+        resto.password = bcrypt.hashSync(password, salt);
+
+
+    }
+
+    const usuario = await Usuario.findByIdAndUpdate(id, resto)
+
     res.status(200)
-    
-      .json({
+
+        .json({
             msn: 'put',
-            id:id
+            usuario
         });
 }
 
-const usuarioDelete=(req, res =response) => {
+const usuarioDelete = async(req, res = response) => {
 
-    const {id}= req.params;
+    const { id } = req.params;
+
+    //fisicamente eliminar
+    // const usuario= await Usuario.findByIdAndDelete(id);
+
+const usuario = await Usuario.findOneAndUpdate(id,{estado:false})
     res.status(200)
-    
-      .json({
-            msn: 'delete'
+        .json({
+            usuario
         });
 }
 
-const usuarioPath=(req, res =response) => {
+const usuarioPath = (req, res = response) => {
     res.status(200)
-    
-      .json({
+
+        .json({
             msn: 'patch'
         });
 }
 
 
 
-module.exports={
+module.exports = {
     usuarioGet,
     usuarioPost,
     usuarioPut,
