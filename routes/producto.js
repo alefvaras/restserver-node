@@ -35,7 +35,6 @@ router.put('/:id', [
     validateJwt,
     check('id','no es id de mongo').isMongoId(),
     check('id').custom(validateProducto),
-   
     validateFileds
 ],actualizarProducto)
 

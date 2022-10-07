@@ -39,17 +39,13 @@ const obtenerProducto=async(req=request,res=response)=>{
     const{id} =req.params;
 
 
-    const producto= await Producto.findById(id)   .populate('usuario','nombre')
+    const producto= await Producto.findById(id).populate('usuario','nombre')
     .populate('categorias','nombre')
-    console.log(producto)
-
 return res.json(producto);
 }
 const crearProducto= async (req,res=response)=>{
 
     const nombre= req.body.nombre.toUpperCase();
-
-
 
 
     const productoaDb=await Producto.findOne({nombre});

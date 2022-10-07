@@ -38,11 +38,17 @@ const validateProducto= async(id)=>{
 
     if(!exitId) throw new Error('no existe id')
 }
+const validatColeccionesPermitidas=(coleccion='',colecciones=[])=>{
+const incluida = colecciones.includes(coleccion);
+if(!incluida) throw new Error('la coleccion no esta permitida '+colecciones)
 
+return true;
+}
 module.exports={
     isRolevalidate,
     emailExist,
     idExist,
     validateCategory,
-    validateProducto
+    validateProducto,
+    validatColeccionesPermitidas
 }
